@@ -1,0 +1,24 @@
+# Exclude .terraform directory
+/.terraform/
+.terraform*
+
+# Exclude Terraform state files
+terraform.tfstate
+terraform.tfstate.backup
+
+# Exclude any plan files
+*.tfplan
+
+# Exclude any variable files (if you use .tfvars for sensitive data)
+/*.tfvars
+
+# Exclude crash log files
+crash.log
+
+# Exclude override files
+override.tf
+override.tf.json
+
+# Exclude Terraform CLI configuration files
+.terraformrc
+terraform.rc
