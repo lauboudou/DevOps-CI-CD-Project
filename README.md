@@ -1,22 +1,41 @@
-# Projet Devops
-# Création de 2 VM ubuntu : vm-ubuntu-install et vm-ubuntu-DevOps
-# Nous récupérerons le Dockerfile de l'image fredericeducentre/ubuntu-ssh préalablement préparée avec ssh entre autres.
-# y ajouter l'installation de sshpass, docker, Terraform et Ansible
-# les 2 VM seront installer dans le même network : ntw_devops pour permettre la communication entre les 2
+Projet Devops
+########################################################################################
+Introduction
+########################################################################################
+Ce projet préparer l'environnement et les outilis nécéssaires pour faire un Projet DevOps CI/CD et CD/CD
+d'un projet ReactJS
 
-# Le projet DevOps-CI-CD-Project
-# Dans le dossier dockerfile-ubuntu lancer la commande "docker build . -t ubuntu-ssh" pour créer l'image ubuntu-ssh à partir du Dockerfile y présent
+Déploiement de l'infrastructure avec terraform
+########################################################################################
+Création de l'image ubunut-ssh à partir de Dockerfile de l'image fredericeducentre/ubuntu-ssh préalablement préparée avec ssh entre autres.
+j'y ajoute l'installation de sshpass, docker, Terraform et Ansible
 
-# Monter un volume pour faire fonctionner docker sur les vm-ubuntu-install et vm-ubuntu-DevOps
-# préciser le montage de volume dans le fichier main.tf ==> voir modules/main.tf dans la ressource docker_container
+Création de 2 conteneures vm-ubuntu-install et vm-ubuntu-DevOps à partir de l'image ubuntu-ssh
+########################################################################################################
+les 2 VM seront installer dans le même network : ntw_devops pour permettre la communication entre les 2
+
+Le projet DevOps-CI-CD-Project
+
+![alt text](image.png)
+
+Lancer la commande "docker build . -t ubuntu-ssh" à la racine du rpojet DevOps-CI-CD-Project
+pour créer l'image ubuntu-ssh à partir du Dockerfile y présent
+
+Pour que les conteneurs vm-ubuntu-install et vm-ubuntu-DevOps à créer à partir de l'image ubuntu-ssh préparée précédement, fonctionnent correctement avec docker configurer dans le fichier terraform 
+modules/main.tf 
+un bloc mount sur le /var/run/docker.sock du docker installé en local sur l'environnement de l'exécution.
+Ce mount permettra au conteneurs vm-ubuntu-install et vm-ubuntu-DevOps d'intéragir avec docker.
+
+La ressource docker_container dans le fichier modules/main.tf aura le bloc mounts suivant:
 mounts {
     type   = "bind"
     source = "/var/run/docker.sock"
     target = "/var/run/docker.sock"
   }
 
+Les variables et l'automatisation de création de 2 conteneures (noms) est pris en compte dans le projet.
 
-# sortir de ce répertoire et se mettre à la racine du projet DevOps-CI-CD-Project et lancer les commandes suivantes pour créer les conteneurs vm-ubuntu-install et vm-ubuntu-DevOps
+Se mettre à la racine du projet et lancer les commandes suivantes pour créer les conteneurs vm-ubuntu-install et vm-ubuntu-DevOps
 
 # initialise le projet
 terraform init
@@ -27,38 +46,81 @@ terraform plan
 # exécute les actions configurées dans le fichier main.tf de terraform
 terraform apply
 
+![alt text](image-1.png)
 
-# Vérifier que les 2 vm tournent et tester l'accès ssh
-# pour vm-ubuntu-install ==>   ssh test@localhost -p 23
-# pour vm-ubuntu-DevOps  ==>   ssh test@localhost -p 24
+Vérifier que les 2 vm tournent et tester l'accès ssh
+
+![alt text](image-2.png)
+
+pour vm-ubuntu-install ==>   ssh test@localhost -p 6023
+pour vm-ubuntu-DevOps  ==>   ssh test@localhost -p 6024
+
+penser à récuperer l'empreinte SSH et faire update du registre des clés SSH
+Exemple:    ssh-keygen -f "/home/dlaubo/.ssh/known_hosts" -R "[localhost]:6023"
+
+########################################################################################################################################
+Dans le conteneur vm-ubuntu-install
+########################################################################################################################################
+Ce conteneur sera préparé avec le projet Ansible 'DevOps-Project-Ansible' qu'on trouve dans le répertoire /home/test
+Lui même sera déposé dans le conteneur via un projet Ansible qui utilisera SSH pour y copier le dossier config-vm-ubuntu-devops avec les
+fichiers inventory.yaml, playbook-agent-node.yaml, playbook.yaml
+
+![alt text](image-3.png)
 
 
-# Dans le conteneur vm-ubuntu-install
-# Nous trouverons le code du projet Ansible DevOps-Project-Ansible pour configurer le conteneur vm-ubuntu-DevOps
-# dans ce projet, le répertoire /config-vm-ubuntu-devops contient le fichier playbook.yaml pour installer docker, jenkins, sonardb (postgres) et sonnarqube
-# le fichier playbook-agent-node.yaml pour installer l'agent node agent_reactjs_node pour le bon fonctionnement d'un projet reactJS
-# en occurence l'agent "fredericeducentre/jenkins_agent_node" utilisé pendant les cours
-# le fichier inventaire.yaml contient la configuration du serveur (conteneur) vm-ubuntu-DevOps pour accéder en SSH. Ce fichier inventory.yaml est crypté ==> mot de passe vault= secret
-# les playbook.yaml et playbook-agent-node.yaml utiliseront ce inventory.yaml crypté
+Le projet 'DevOps-Project-Ansible' sera copié dans le conteneur vm-ubuntu-DevOps pour configurer le conteneur vm-ubuntu-DevOps
 
-# Sur le conteneur vm-ubuntu-install et dans le dossier /home/test/DevOps-Project-Ansible/config-vm-ubuntu-devops
-# lancer la commande suivante pour installer la clé ssh avant d'exécuter le playbook.yaml en précisant l'@IP de vm-ubuntu-devops ==> vérifier l'@IP de votre conteneur par docker inspect vm-ubuntu-devops
-sudo ssh test@172.19.0.2 -p 22
+Dans ce projet, le répertoire /config-vm-ubuntu-devops contient le fichier playbook.yaml pour installer docker, jenkins, sonardb (postgres) et sonnarqube
+Le fichier playbook-agent-node.yaml pour installer l'agent node agent_reactjs_node pour le bon fonctionnement d'un projet reactJS
+En occurence l'agent "fredericeducentre/jenkins_agent_node" utilisé pendant les cours
+Le fichier inventaire.yaml contient la configuration du serveur (conteneur) vm-ubuntu-DevOps pour accéder en SSH. Ce fichier inventory.yaml est crypté ==> mot de passe vault= secret
 
-# exécuter le playbook.yaml pour installer docker, jenkins, sonnardb et sonnarqube sur vm-ubuntu-devops
+Les playbook.yaml et playbook-agent-node.yaml du dossier config-vm-ubuntu-devops utiliseront cet inventory.yaml crypté
+
+A la racine du projet:
+dans l'inventory.yaml voici la configuration de l'accès ssh au conteneur cible:
+########################################################################################################################################
+vm-ubuntu-install ansible_host=localhost ansible_user=test ansible_ssh_pass=test ansible_port=6023
+
+copy-config-playbook.yaml
+########################################################################################################################################
+
+![alt text](image-5.png)
+
+Lancer copy-config-playbook.yaml à la racine de ce projet pour faire copier le projet 'DevOps-Project-Ansible' dans le conteneur vm-ubuntu-install
+
+ansible-playbook -i inventory.ini copy-config-playbook.yaml --ask-become-pass --ask-vault-pass
+
+![alt text](image-4.png)
+
+Sur le conteneur vm-ubuntu-install et dans le dossier /home/test/DevOps-Project-Ansible
+Le projet est copié. Dans le dossier /config-vm-ubuntu-devops:
+Lancer la commande suivante pour installer la clé ssh sur vm-ubuntu-install avant d'exécuter le playbook.yaml en précisant l'@IP de vm-ubuntu-devops ==> vérifier l'@IP de votre conteneur par docker inspect vm-ubuntu-devops
+sudo ssh test@172.18.0.3 -p 22
+
+![alt text](image-6.png)
+
+Taper exit pour sortir du conteneur.
+
+Dans le dossier /home/test/DevOps-Project-Ansible/config-vm-ubuntu-devops
+configurer inventory.yaml avec l'adresse IP du conteneur vm-ubuntu-devops
+Appliquer ou pas le vault pour crypter le fichier. Dans mon cas c'est crypté.
+
+Exécuter le playbook.yaml pour installer docker, jenkins, sonnardb et sonnarqube sur vm-ubuntu-devops
 sudo ansible-playbook -i inventory.yaml playbook.yaml --ask-become-pass --ask-vault-pass
-# become-pass=test
-# vault-pass=secret
 
-# Vérifier que l'installation est bien passée sur vm-ubuntu-DevOps
-# ========================================================================================================
-# Dans contenauer vm-ubuntu-DevOps
-# Nous y trouverons installés: 
-# docker, jenkins sur le port 8080  sonnarqube sur le port 9000
-# Aller se connecter sur jenkins ==> http://localhost:8080/
-# Le mot de passe demandé se trouvera dans le fichier /var/*** indiqué du conteneur jenkins_container ou par la commande deocker logs jenkins_container
-# renseigner le mot de passe 
-# continuer la configuration par : jenkins ==> utilisateur: jenkins - password: jenkins - nom complet: admin jenkins - Email: admin@admin.com
+become-pass=test
+vault-pass=secret
+
+Vérifier que l'installation est bien passée sur vm-ubuntu-DevOps
+========================================================================================================
+Dans contenauer vm-ubuntu-DevOps
+Nous y trouverons installés: 
+docker, jenkins sur le port 8080  sonnarqube sur le port 9000
+Aller se connecter sur jenkins ==> http://localhost:8080/
+Le mot de passe demandé se trouvera dans le fichier /var/*** indiqué du conteneur jenkins_container ou par la commande deocker logs jenkins_container
+renseigner le mot de passe 
+continuer la configuration par : jenkins ==> utilisateur: jenkins - password: jenkins - nom complet: admin jenkins - Email: admin@admin.com
 # tester l'exécution d'un pipeline pour confirmer le bon fonctionnement de jenkins
 # Si le pipeline stage view n'est pas visible penser à vérifier si le plugin pipeline stage view est installé sinon installer le et redémarrer jenkins
 
@@ -118,3 +180,9 @@ stage('Scan'){
 # Clone, Test, Build, Scan, Quality Gate, Delivery
 # Vérifier que le push de l'image est bien pasé
 
+
+Lancer cette commande pour installer le registry de docker
+
+docker run -d -p 5000:5000 --restart always --name registry registry:2
+
+Il sera utilisé pour la sauvegarde en local des images docker
