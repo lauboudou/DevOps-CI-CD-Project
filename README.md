@@ -1,17 +1,14 @@
 Projet Devops
-########################################################################################
+
 Introduction
-########################################################################################
 Ce projet préparer l'environnement et les outilis nécéssaires pour faire un Projet DevOps CI/CD et CD/CD
 d'un projet ReactJS
 
 Déploiement de l'infrastructure avec terraform
-########################################################################################
 Création de l'image ubunut-ssh à partir de Dockerfile de l'image fredericeducentre/ubuntu-ssh préalablement préparée avec ssh entre autres.
 j'y ajoute l'installation de sshpass, docker, Terraform et Ansible
 
 Création de 2 conteneures vm-ubuntu-install et vm-ubuntu-DevOps à partir de l'image ubuntu-ssh
-########################################################################################################
 les 2 VM seront installer dans le même network : ntw_devops pour permettre la communication entre les 2
 
 Le projet DevOps-CI-CD-Project
@@ -58,9 +55,10 @@ pour vm-ubuntu-DevOps  ==>   ssh test@localhost -p 6024
 penser à récuperer l'empreinte SSH et faire update du registre des clés SSH
 Exemple:    ssh-keygen -f "/home/dlaubo/.ssh/known_hosts" -R "[localhost]:6023"
 
-########################################################################################################################################
+Le compte test/test et root/test sont actives dans le contenaire vm-ubuntu-install
+A l'intérieur du contenaire, passer root ou utiliser sudo pour exécuter les docker ==> docker ps -a
+
 Dans le conteneur vm-ubuntu-install
-########################################################################################################################################
 Ce conteneur sera préparé avec le projet Ansible 'DevOps-Project-Ansible' qu'on trouve dans le répertoire /home/test
 Lui même sera déposé dans le conteneur via un projet Ansible qui utilisera SSH pour y copier le dossier config-vm-ubuntu-devops avec les
 fichiers inventory.yaml, playbook-agent-node.yaml, playbook.yaml
@@ -79,11 +77,10 @@ Les playbook.yaml et playbook-agent-node.yaml du dossier config-vm-ubuntu-devops
 
 A la racine du projet:
 dans l'inventory.yaml voici la configuration de l'accès ssh au conteneur cible:
-########################################################################################################################################
+
 vm-ubuntu-install ansible_host=localhost ansible_user=test ansible_ssh_pass=test ansible_port=6023
 
 copy-config-playbook.yaml
-########################################################################################################################################
 
 ![alt text](image-5.png)
 
@@ -107,47 +104,51 @@ configurer inventory.yaml avec l'adresse IP du conteneur vm-ubuntu-devops
 Appliquer ou pas le vault pour crypter le fichier. Dans mon cas c'est crypté.
 
 Exécuter le playbook.yaml pour installer docker, jenkins, sonnardb et sonnarqube sur vm-ubuntu-devops
-sudo ansible-playbook -i inventory.yaml playbook.yaml --ask-become-pass --ask-vault-pass
 
+sudo ansible-playbook -i inventory.yaml playbook.yaml --ask-become-pass --ask-vault-pass
 become-pass=test
 vault-pass=secret
 
 Vérifier que l'installation est bien passée sur vm-ubuntu-DevOps
-========================================================================================================
 Dans contenauer vm-ubuntu-DevOps
 Nous y trouverons installés: 
 docker, jenkins sur le port 8080  sonnarqube sur le port 9000
 Aller se connecter sur jenkins ==> http://localhost:8080/
 Le mot de passe demandé se trouvera dans le fichier /var/*** indiqué du conteneur jenkins_container ou par la commande deocker logs jenkins_container
-renseigner le mot de passe 
-continuer la configuration par : jenkins ==> utilisateur: jenkins - password: jenkins - nom complet: admin jenkins - Email: admin@admin.com
-# tester l'exécution d'un pipeline pour confirmer le bon fonctionnement de jenkins
-# Si le pipeline stage view n'est pas visible penser à vérifier si le plugin pipeline stage view est installé sinon installer le et redémarrer jenkins
+renseigner le mot de passe
+continuer la configuration par : jenkins ==> utilisateur: jenkins - password: jenkins - nom complet: lauboudou jenkins - Email: admin@admin.com
 
-# ========================================================================================================
-# Configuer l'agent node sur jenkins
-# Aller dans Administrer Jenkins > Nodes > Créer un nouveau node : agent_reactjs_node
-# passer le nombre d'exécution sur le node controlleur à 0
+![alt text](image-7.png)
 
-# Dans le conteneur vm-ubuntu-install
-# Aller dans le répertoire /home/test/DevOps-Project-Ansible/config-vm-ubuntu-devops
-# lancer le playbook-agent-node.yaml pour installer l'agent node agent_reactjs_node
+![alt text](image-8.png)
+
+
+tester l'exécution d'un pipeline pour confirmer le bon fonctionnement de jenkins
+Si le pipeline stage view n'est pas visible penser à vérifier si le plugin pipeline stage view est installé sinon installer le et redémarrer jenkins
+
+Configuer l'agent node sur jenkins
+Aller dans Administrer Jenkins > Nodes > Créer un nouveau node : agent_reactjs_node
+passer le nombre d'exécution sur le node controlleur à 0
+
+Dans le conteneur vm-ubuntu-install
+Aller dans le répertoire /home/test/DevOps-Project-Ansible/config-vm-ubuntu-devops
+lancer le playbook-agent-node.yaml pour installer l'agent node agent_reactjs_node
+
 sudo ansible-playbook -i inventory.yaml playbook-agent-node.yaml --ask-become-pass --ask-vault-pass
-# become-pass=test
-# vault-pass=secret
+become-pass=test
+vault-pass=secret
 
-# l'agent jenkins_agent_node sera installé, assurer qu'il soit démarré
-# tester l'exécution d'un pipeline en utilisant ce nouveau node avec un projet reactjs
+l'agent jenkins_agent_node sera installé, assurer qu'il soit démarré
+tester l'exécution d'un pipeline en utilisant ce nouveau node avec un projet reactjs
 
-# ========================================================================================================
-# Configurer sonnarqube sur http://localhost:9000/ ==> utilisateur: admin password: admin puis changer le password à sonnar
-# ========================================================================================================
-# maintenant sur jenkins
-# ajouter un plugin sonarqube
-# Administrer jenkins > system > ajouter plugin sonarqube > redémarrer
-# Créer un projet de test sur Sonarqube ==> Test_reactJS
-# pour ce projet configurer un token sans utilisateur en local
-# le token sera utilisé dans un pipeline comme suit
+Configurer sonnarqube sur http://localhost:9000/ ==> utilisateur: admin password: admin puis changer le password à sonar
+---------------------
+maintenant sur jenkins
+ajouter un plugin sonarqube
+Administrer jenkins > system > ajouter plugin sonarqube > redémarrer
+Créer un projet de test sur Sonarqube ==> Test_reactJS
+pour ce projet configurer un token sans utilisateur en local
+le token sera utilisé dans un pipeline comme suit
 stage('Scan'){
      steps {
         sh '''

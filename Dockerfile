@@ -5,11 +5,12 @@ FROM ubuntu:latest
 RUN apt-get update
 RUN apt-get install -y openssh-server ca-certificates curl gnupg lsb-release sudo
 
-# Mettre à jour le gestionnaire de paquets et installer sshpass
-RUN apt-get update && \
-    apt-get install -y sshpass && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+# Install docker
+RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian bullseye stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+RUN mkdir -p /etc/apt/keyrings
+RUN curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+RUN apt-get update
+RUN apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
 
 # Create an SSH user
 RUN useradd -rm -d /home/test -s /bin/bash -g root -G sudo -u 1001 test
@@ -38,6 +39,12 @@ RUN mv terraform /usr/local/bin/
 
 # Verify that Terraform is installed by checking its version:
 RUN terraform version
+
+# Mettre à jour le gestionnaire de paquets et installer sshpass
+RUN apt-get update && \
+    apt-get install -y sshpass && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Allow SSH access
 RUN mkdir /var/run/sshd
