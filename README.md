@@ -13,7 +13,7 @@ les 2 VM seront installer dans le même network : ntw_devops pour permettre la c
 
 Le projet DevOps-CI-CD-Project
 
-![alt text](image.png)
+![alt text](images/image.png)
 
 Lancer la commande "docker build . -t ubuntu-ssh" à la racine du rpojet DevOps-CI-CD-Project
 pour créer l'image ubuntu-ssh à partir du Dockerfile y présent
@@ -43,11 +43,11 @@ terraform plan
 Exécuter les actions configurées dans le fichier main.tf de terraform
 terraform apply
 
-![alt text](image-1.png)
+![alt text](images/image-1.png)
 
 Vérifier que les 2 vm tournent et tester l'accès ssh
 
-![alt text](image-2.png)
+![alt text](images/image-2.png)
 
 pour vm-ubuntu-install ==>   ssh test@localhost -p 6023
 pour vm-ubuntu-DevOps  ==>   ssh test@localhost -p 6024
@@ -63,7 +63,7 @@ Ce conteneur sera préparé avec le projet Ansible 'DevOps-Project-Ansible' qu'o
 Lui même sera déposé dans le conteneur via un projet Ansible qui utilisera SSH pour y copier le dossier config-vm-ubuntu-devops avec les
 fichiers inventory.yaml, playbook-agent-node.yaml, playbook.yaml
 
-![alt text](image-3.png)
+![alt text](images/image-3.png)
 
 
 Le projet 'DevOps-Project-Ansible' sera copié dans le conteneur vm-ubuntu-DevOps pour configurer le conteneur vm-ubuntu-DevOps
@@ -82,20 +82,20 @@ vm-ubuntu-install ansible_host=localhost ansible_user=test ansible_ssh_pass=test
 
 copy-config-playbook.yaml
 
-![alt text](image-5.png)
+![alt text](images/image-5.png)
 
 Lancer copy-config-playbook.yaml à la racine de ce projet pour faire copier le projet 'DevOps-Project-Ansible' dans le conteneur vm-ubuntu-install
 
 ansible-playbook -i inventory.ini copy-config-playbook.yaml --ask-become-pass --ask-vault-pass
 
-![alt text](image-4.png)
+![alt text](images/image-4.png)
 
 Sur le conteneur vm-ubuntu-install et dans le dossier /home/test/DevOps-Project-Ansible
 Le projet est copié. Dans le dossier /config-vm-ubuntu-devops:
 Lancer la commande suivante pour installer la clé ssh sur vm-ubuntu-install avant d'exécuter le playbook.yaml en précisant l'@IP de vm-ubuntu-devops ==> vérifier l'@IP de votre conteneur par docker inspect vm-ubuntu-devops
 sudo ssh test@172.18.0.3 -p 22
 
-![alt text](image-6.png)
+![alt text](images/image-6.png)
 
 Taper exit pour sortir du conteneur.
 
@@ -118,9 +118,9 @@ Le mot de passe demandé se trouvera dans le fichier /var/*** indiqué du conten
 renseigner le mot de passe
 continuer la configuration par : jenkins ==> utilisateur: jenkins - password: jenkins - nom complet: lauboudou jenkins - Email: admin@admin.com
 
-![alt text](image-7.png)
+![alt text](images/image-7.png)
 
-![alt text](image-8.png)
+![alt text](images/image-8.png)
 
 
 tester l'exécution d'un pipeline pour confirmer le bon fonctionnement de jenkins
@@ -141,7 +141,7 @@ vault-pass=secret
 l'agent jenkins_agent_node sera installé, assurer qu'il soit démarré
 tester l'exécution d'un pipeline en utilisant ce nouveau node avec un projet reactjs
 
-Configurer sonnarqube sur http://localhost:9000/ ==> utilisateur: admin password: admin puis changer le password à sonar
+Configurer sonnarqube sur l'interface http://localhost:9000/ ==> utilisateur: admin password: admin puis changer le password à sonar
 -----------------------------------------------------------------------
 maintenant sur jenkins
 ajouter un plugin sonarqube
@@ -155,7 +155,7 @@ stage('Scan'){
           sonar-scanner \
           -Dsonar.projectKey=Test-horoscope-zodiac-js \
           -Dsonar.sources=. \
-          -Dsonar.host.url=http://localhost:9000 \
+          -Dsonar.host.url=http://172.20.0.4:9000 \
           -Dsonar.token=sqp_a8868724a4f50bbb4ac1e1a9cf51dd0e19cad087
         '''
     }
@@ -171,19 +171,39 @@ Donner un nom à cette installation ==> jenkins_sonarqube
 Utiliser le credential sonar créé précédement ==> dans un secret text
 pas de password, donner un nom à ce crédéntial et attacher le à l'installation sonarqube
 
-passer un pipeline avec les stages Clone, Test, Build, Scan et Quality Gate
-# le pipeline passe et le projet Sonarqube Test_reactJS contiendra les métriques de test
+Passer un pipeline avec les stages Clone, Test, Build, Scan et Quality Gate
+Le pipeline passe et le projet Sonarqube Test_reactJS contiendra les métriques de test
 
-# Delivery de l'image sur hub.docker.com
-# préparer un credential pour l'accès au compte hub.docker.com qui réscevra l'image
-# préparer le stage Delivery
-# faire passer un projet par les stages d'un pipeline
-# Clone, Test, Build, Scan, Quality Gate, Delivery
-# Vérifier que le push de l'image est bien pasé
+Delivery de l'image sur hub.docker.com
+Préparer un credential pour l'accès au compte hub.docker.com qui réscevra l'image
+Préparer le stage Delivery
+Faire passer un projet par les stages d'un pipeline
+Clone, Test, Build, Scan, Quality Gate, Delivery
+Vérifier que le push de l'image est bien passé
 
-
-Lancer cette commande pour installer le registry de docker
-
+----------------------------------------------------------------------------------------Lancer cette commande pour installer le registry de docker
+----------------------------------------------------------------------------------------
 docker run -d -p 5000:5000 --restart always --name registry registry:2
 
 Il sera utilisé pour la sauvegarde en local des images docker
+
+---------------------------------------------------------------------
+Faire push des images de notres TP dans registry
+---------------------------------------------------------------------
+docker tag vm-ubuntu-install localhost:5000/vm-ubuntu-install
+docker push localhost:5000/vm-ubuntu-install
+
+docker tag vm-ubuntu-devops localhost:5000/vm-ubuntu-devops
+docker push localhost:5000/vm-ubuntu-devops
+
+docker tag jenkins_container localhost:5000/jenkins_container
+docker push localhost:5000/jenkins_container
+
+docker tag sonarqube localhost:5000/sonarqube
+docker push localhost:5000/sonarqube
+
+docker tag sonarqube-db localhost:5000/sonarqube-db
+docker push localhost:5000/sonarqube-db
+
+docker tag agent_reactjs_node localhost:5000/agent_reactjs_node
+docker push localhost:5000/agent_reactjs_node
