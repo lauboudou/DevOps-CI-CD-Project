@@ -188,7 +188,7 @@ docker run -d -p 5000:5000 --restart always --name registry registry:2
 Il sera utilisé pour la sauvegarde en local des images docker
 
 ---------------------------------------------------------------------
-Faire push des images de notres TP dans registry
+Push des images de notre TP dans registry
 ---------------------------------------------------------------------
 docker tag vm-ubuntu-install localhost:5000/vm-ubuntu-install
 docker push localhost:5000/vm-ubuntu-install
