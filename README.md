@@ -181,7 +181,8 @@ Faire passer un projet par les stages d'un pipeline
 Clone, Test, Build, Scan, Quality Gate, Delivery
 Vérifier que le push de l'image est bien passé
 
-----------------------------------------------------------------------------------------Lancer cette commande pour installer le registry de docker
+-------------------------------------------------------------------------------
+Lancer cette commande pour installer le registry de docker
 ----------------------------------------------------------------------------------------
 docker run -d -p 5000:5000 --restart always --name registry registry:2
 
