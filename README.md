@@ -34,13 +34,13 @@ Les variables et l'automatisation de création de 2 conteneures (noms) est pris 
 
 Se mettre à la racine du projet et lancer les commandes suivantes pour créer les conteneurs vm-ubuntu-install et vm-ubuntu-DevOps
 
-# initialise le projet
+Initialiser le projet terraform
 terraform init
 
-# liste les actions qui seront exécutées avec terraform
+Lister les actions qui seront exécutées avec terraform
 terraform plan
 
-# exécute les actions configurées dans le fichier main.tf de terraform
+Exécuter les actions configurées dans le fichier main.tf de terraform
 terraform apply
 
 ![alt text](image-1.png)
@@ -142,36 +142,36 @@ l'agent jenkins_agent_node sera installé, assurer qu'il soit démarré
 tester l'exécution d'un pipeline en utilisant ce nouveau node avec un projet reactjs
 
 Configurer sonnarqube sur http://localhost:9000/ ==> utilisateur: admin password: admin puis changer le password à sonar
----------------------
+-----------------------------------------------------------------------
 maintenant sur jenkins
 ajouter un plugin sonarqube
 Administrer jenkins > system > ajouter plugin sonarqube > redémarrer
-Créer un projet de test sur Sonarqube ==> Test_reactJS
+Créer un projet de test sur Sonarqube ==> Test-horoscope-zodiac-js
 pour ce projet configurer un token sans utilisateur en local
 le token sera utilisé dans un pipeline comme suit
 stage('Scan'){
      steps {
         sh '''
           sonar-scanner \
-          -Dsonar.projectKey=Test_reactJS \
+          -Dsonar.projectKey=Test-horoscope-zodiac-js \
           -Dsonar.sources=. \
-          -Dsonar.host.url=http://172.24.0.4:9000 \
-          -Dsonar.token=sqp_e7e68975f7b6b1ab182072099c1eaaa771f0abb1
+          -Dsonar.host.url=http://localhost:9000 \
+          -Dsonar.token=sqp_a8868724a4f50bbb4ac1e1a9cf51dd0e19cad087
         '''
     }
 }
 
-# pour l'utilisation de Quality Gate de Sonarqube afin d'appliquer les règles de validation configurer un webhook sur sonarqube qui sera également configuré sur l'installation sonarqube de jenkins
-# sur sonarqube configurer un webhook général avec l’url http://@IP:8080/sonarqube-webhook
-# aller dans Administration > Configuration > Webhooks
-# créer un nouveau webhook avec l'@IP du serveur jenkins (jenkins_container) ==> 172.24.0.2
+pour l'utilisation de Quality Gate de Sonarqube afin d'appliquer les règles de validation configurer un webhook sur sonarqube qui sera également configuré sur l'installation sonarqube de jenkins
+sur sonarqube configurer un webhook général avec l’url http://172.20.0.2:8080/sonarqube-webhook
+Aller dans Administration > Configuration > Webhooks
+Créer un nouveau webhook avec l'@IP du serveur jenkins (jenkins_container) ==> 172.20.0.2
 
-# Sur le serveur jenkins, aller dans Administrer jenkins > system > chercher la partie de configuration de sonar > ajouter une installation Sonarqube
-# Donner un nom à cette installation ==> jenkins_sonarqube
-# Utiliser le credential sonar créé précédement ==> dans un secret text
-# pas de password, donner un nom à ce crédéntial et attacher le à l'installation sonarqube
+Sur le serveur jenkins, aller dans Administrer jenkins > system > chercher la partie de configuration de sonar > ajouter une installation Sonarqube
+Donner un nom à cette installation ==> jenkins_sonarqube
+Utiliser le credential sonar créé précédement ==> dans un secret text
+pas de password, donner un nom à ce crédéntial et attacher le à l'installation sonarqube
 
-# passer un pipeline avec les stages Clone, Test, Build, Scan et Quality Gate
+passer un pipeline avec les stages Clone, Test, Build, Scan et Quality Gate
 # le pipeline passe et le projet Sonarqube Test_reactJS contiendra les métriques de test
 
 # Delivery de l'image sur hub.docker.com
