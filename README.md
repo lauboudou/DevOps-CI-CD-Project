@@ -191,20 +191,20 @@ Il sera utilisé pour la sauvegarde en local des images docker
 ---------------------------------------------------------------------
 Push des images de notre TP dans registry
 ---------------------------------------------------------------------
-docker tag vm-ubuntu-install localhost:5000/vm-ubuntu-install
+docker commit vm-ubuntu-install localhost:5000/vm-ubuntu-install
 docker push localhost:5000/vm-ubuntu-install
 
-docker tag vm-ubuntu-devops localhost:5000/vm-ubuntu-devops
+docker commit vm-ubuntu-devops localhost:5000/vm-ubuntu-devops
 docker push localhost:5000/vm-ubuntu-devops
 
-docker tag jenkins_container localhost:5000/jenkins_container
+docker commit jenkins_container localhost:5000/jenkins_container
 docker push localhost:5000/jenkins_container
 
-docker tag sonarqube localhost:5000/sonarqube
+docker commit sonarqube localhost:5000/sonarqube
 docker push localhost:5000/sonarqube
 
-docker tag sonarqube-db localhost:5000/sonarqube-db
+docker commit sonarqube-db localhost:5000/sonarqube-db
 docker push localhost:5000/sonarqube-db
 
-docker tag agent_reactjs_node localhost:5000/agent_reactjs_node
+docker commit agent_reactjs_node localhost:5000/agent_reactjs_node
 docker push localhost:5000/agent_reactjs_node
