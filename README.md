@@ -180,6 +180,7 @@ Préparer le stage Delivery
 Faire passer un projet par les stages d'un pipeline
 Clone, Test, Build, Scan, Quality Gate, Delivery
 Vérifier que le push de l'image est bien passé
+Si le push n'est pas bien passé penser à voir les logs du pipeline et tester que la commande docker login via le contenaire vm-ubuntu-devops fonctinne
 
 -------------------------------------------------------------------------------
 Lancer cette commande pour installer le registry de docker
