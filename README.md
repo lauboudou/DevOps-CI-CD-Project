@@ -111,15 +111,15 @@ Exécuter le playbook.yaml pour installer docker, jenkins, sonnardb et sonnarqub
 Dans ce playbook.yaml
 dlaubo/sonnarqube  ==> c'est une image sonarqube:community récupérer via le Dockerfile avec les commandes update et upgrade pour éviter une erreur que nous retrouvons dans la console de sortie de pipeline malgré que celui-ci est exécuté correctement. Cette erreur est connue dans la version 5.10 de sonarqube.
 Le Dockerfile se retrouve dans le répertoire dockerfile-sonarqube du projet DevOps-CI-CD-Project), son contenu
-
+--------------------------------------------
 FROM sonarqube:community
 USER root
 RUN apt-get update -y && apt-get upgrade -y
 USER sonarqube
 EXPOSE 9000
+--------------------------------------------
 
-
-sudo ansible-playbook -i inventory.yaml playbook.yaml --ask-become-pass --ask-vault-pass
+ansible-playbook -i inventory.yaml playbook.yaml --ask-become-pass --ask-vault-pass
 become-pass=test
 vault-pass=secret
 
