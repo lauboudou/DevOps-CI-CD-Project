@@ -1,8 +1,7 @@
 Projet Devops
 
 Introduction
-Ce projet préparer l'environnement et les outilis nécéssaires pour faire un Projet DevOps CI/CD et CD/CD
-d'un projet ReactJS
+Ce projet préparer l'environnement et les outilis nécéssaires pour faire un Projet DevOps CI/CD et CD/CD d'un projet ReactJS
 
 Déploiement de l'infrastructure avec terraform
 Création de l'image ubunut-ssh à partir de Dockerfile de l'image fredericeducentre/ubuntu-ssh préalablement préparée avec ssh entre autres.
@@ -60,7 +59,11 @@ A l'intérieur du contenaire, passer root ou utiliser sudo pour exécuter les do
 
 Dans le conteneur vm-ubuntu-install
 Ce conteneur sera préparé avec le projet Ansible 'DevOps-Project-Ansible' qu'on trouve dans le répertoire /home/test
-Lui même sera déposé dans le conteneur via un projet Ansible qui utilisera SSH pour y copier le dossier config-vm-ubuntu-devops avec les
+
+==> DevOps-Project-Ansible se trouve sur git
+https://github.com/lauboudou/DevOps-Project-Ansible.git
+
+Le projet DevOps-Project-Ansible sera déposé dans le conteneur via un projet Ansible qui utilisera SSH pour y copier le dossier config-vm-ubuntu-devops avec les
 fichiers inventory.yaml, playbook-agent-node.yaml, playbook.yaml
 
 ![alt text](images/image-3.png)
@@ -104,6 +107,17 @@ configurer inventory.yaml avec l'adresse IP du conteneur vm-ubuntu-devops
 Appliquer ou pas le vault pour crypter le fichier. Dans mon cas c'est crypté.
 
 Exécuter le playbook.yaml pour installer docker, jenkins, sonnardb et sonnarqube sur vm-ubuntu-devops
+
+Dans ce playbook.yaml
+dlaubo/sonnarqube  ==> c'est une image sonarqube:community récupérer via le Dockerfile avec les commandes update et upgrade pour éviter une erreur que nous retrouvons dans la console de sortie de pipeline malgré que celui-ci est exécuté correctement. Cette erreur est connue dans la version 5.10 de sonarqube.
+Le Dockerfile se retrouve dans le répertoire dockerfile-sonarqube du projet DevOps-CI-CD-Project), son contenu
+
+FROM sonarqube:community
+USER root
+RUN apt-get update -y && apt-get upgrade -y
+USER sonarqube
+EXPOSE 9000
+
 
 sudo ansible-playbook -i inventory.yaml playbook.yaml --ask-become-pass --ask-vault-pass
 become-pass=test
